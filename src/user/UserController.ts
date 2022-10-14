@@ -5,32 +5,33 @@ import { HTTPError } from '../errors/HTTPError';
 import { TYPES } from '../types';
 import { ILogger } from '../logger/LoggerInterface';
 import 'reflect-metadata';
+import { IUserController } from './UserControllerInterface';
 
 @injectable()
-export class UserController extends BaseController {
-  constructor(@inject(TYPES.ILogger) private loggerService: ILogger) {
-    super(loggerService);
+export class UserController extends BaseController implements IUserController {
+	constructor(@inject(TYPES.ILogger) private loggerService: ILogger) {
+		super(loggerService);
 
-    this.bindRoutes([
-      {
-        path: '/login',
-        method: 'post',
-        handler: this.login,
-      },
-      {
-        path: '/register',
-        method: 'post',
-        handler: this.register,
-      }
-    ]);
-  }
+		this.bindRoutes([
+			{
+				path: '/login',
+				method: 'post',
+				handler: this.login,
+			},
+			{
+				path: '/register',
+				method: 'post',
+				handler: this.register,
+			},
+		]);
+	}
 
-  login(req: Request, res: Response, next: NextFunction) {
-    //this.ok(res, 'Login success!');
-    next(new HTTPError(401, 'Not authorized', 'login'));
-  }
+	login(req: Request, res: Response, next: NextFunction): void {
+		//this.ok(res, 'Login success!');
+		next(new HTTPError(401, 'Not authorized', 'login'));
+	}
 
-  register(req: Request, res: Response, next: NextFunction) {
-    this.ok(res, 'Register success!');
-  }
+	register(req: Request, res: Response, next: NextFunction): void {
+		this.ok(res, 'Register success!');
+	}
 }

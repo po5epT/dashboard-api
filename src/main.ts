@@ -1,18 +1,20 @@
 import { App } from './app';
 import { LoggerService } from './logger/LoggerService';
+import { ILogger } from './logger/LoggerInterface';
 import { UserController } from './user/UserController';
 import { ExceptionFilter } from './errors/ExceptionFilter';
+import { IExceptionFilter } from './errors/ExceptionFilterInterface';
+import { Container } from 'inversify';
+import { TYPES } from './types';
 
-async function bootstrap() {
-  const logger: LoggerService = new LoggerService();
+const appContainer = new Container();
 
-  const app = new App(
-    logger,
-    new UserController(logger),
-    new ExceptionFilter(logger)
-  );
+appContainer.bind<ILogger>(TYPES.ILogger).to(LoggerService);
+appContainer.bind<IExceptionFilter>(TYPES.ExceptionFilter).to(ExceptionFilter);
+appContainer.bind<UserController>(TYPES.UserController).to(UserController);
+appContainer.bind<App>(TYPES.Application).to(App);
 
-  await app.init();
-}
+const app = appContainer.get<App>(TYPES.Application);
+app.init();
 
-bootstrap();
+export { app, appContainer };

@@ -11,6 +11,7 @@ import { IUserService } from './UserService';
 import { ValidateMiddleware } from '../common/ValidateMiddleware';
 import { IConfigService } from '../config/ConfigService';
 import 'reflect-metadata';
+import { GuardMiddleware } from '../common/GuardMiddleware';
 
 export interface IUserController {
 	login: (req: Request, res: Response, next: NextFunction) => Promise<void>;
@@ -44,7 +45,7 @@ export class UserController extends BaseController implements IUserController {
 				path: '/info',
 				method: 'get',
 				handler: this.info,
-				middlewares: [],
+				middlewares: [new GuardMiddleware()],
 			},
 		]);
 	}
@@ -86,7 +87,14 @@ export class UserController extends BaseController implements IUserController {
 		res: Response,
 		next: NextFunction,
 	): Promise<void> {
-		this.ok(res, user);
+		const userInfo = await this.userService.getUserInfo(user.email);
+
+		if (!userInfo) {
+			return next(new HTTPError(404, 'User is not found', 'info'));
+		}
+
+		const { password, ...resResult } = userInfo;
+		this.ok(res, resResult);
 	}
 
 	private signJWT(email: string, secret: string): Promise<string> {

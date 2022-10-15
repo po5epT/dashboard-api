@@ -1,6 +1,13 @@
 import { Logger } from 'tslog';
-import { ILogger } from './LoggerInterface';
 import { injectable } from 'inversify';
+
+export interface ILogger {
+	logger: unknown;
+
+	log: (...args: unknown[]) => void;
+	error: (...args: unknown[]) => void;
+	warn: (...args: unknown[]) => void;
+}
 
 @injectable()
 export class LoggerService implements ILogger {

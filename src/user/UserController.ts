@@ -3,13 +3,17 @@ import { BaseController } from '../common/BaseController';
 import { NextFunction, Request, Response } from 'express';
 import { HTTPError } from '../errors/HTTPError';
 import { TYPES } from '../types';
-import { ILogger } from '../logger/LoggerInterface';
+import { ILogger } from '../logger/LoggerService';
 import 'reflect-metadata';
-import { IUserController } from './UserControllerInterface';
 import { UserLoginDto } from './dto/UserLoginDto';
 import { UserRegisterDto } from './dto/UserRegisterDto';
 import { IUserService } from './UserService';
 import { ValidateMiddleware } from '../common/ValidateMiddleware';
+
+export interface IUserController {
+	login: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+	register: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+}
 
 @injectable()
 export class UserController extends BaseController implements IUserController {
@@ -35,10 +39,18 @@ export class UserController extends BaseController implements IUserController {
 		]);
 	}
 
-	login(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): void {
-		//this.ok(res, 'Login success!');
-		console.log(req.body);
-		next(new HTTPError(401, 'Not authorized', 'login'));
+	async login(
+		{ body }: Request<{}, {}, UserLoginDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		const result = await this.userService.validateUser(body);
+
+		if (!result) {
+			return next(new HTTPError(401, 'Not authorized', 'login'));
+		}
+
+		this.ok(res, 'Login success!');
 	}
 
 	async register(

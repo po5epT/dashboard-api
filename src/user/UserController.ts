@@ -15,6 +15,7 @@ import 'reflect-metadata';
 export interface IUserController {
 	login: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 	register: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+	info: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 
 @injectable()
@@ -39,10 +40,16 @@ export class UserController extends BaseController implements IUserController {
 				handler: this.register,
 				middlewares: [new ValidateMiddleware(UserRegisterDto)],
 			},
+			{
+				path: '/info',
+				method: 'get',
+				handler: this.info,
+				middlewares: [],
+			},
 		]);
 	}
 
-	async login(
+	public async login(
 		{ body }: Request<{}, {}, UserLoginDto>,
 		res: Response,
 		next: NextFunction,
@@ -59,7 +66,7 @@ export class UserController extends BaseController implements IUserController {
 		this.ok(res, { jwt });
 	}
 
-	async register(
+	public async register(
 		{ body }: Request<{}, {}, UserRegisterDto>,
 		res: Response,
 		next: NextFunction,
@@ -72,6 +79,14 @@ export class UserController extends BaseController implements IUserController {
 
 		const { password, ...resResult } = result;
 		this.ok(res, resResult);
+	}
+
+	public async info(
+		{ user }: Request<{}, {}, UserRegisterDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		this.ok(res, user);
 	}
 
 	private signJWT(email: string, secret: string): Promise<string> {

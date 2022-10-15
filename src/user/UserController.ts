@@ -1,14 +1,16 @@
 import { inject, injectable } from 'inversify';
+import { sign } from 'jsonwebtoken';
 import { BaseController } from '../common/BaseController';
 import { NextFunction, Request, Response } from 'express';
 import { HTTPError } from '../errors/HTTPError';
 import { TYPES } from '../types';
 import { ILogger } from '../logger/LoggerService';
-import 'reflect-metadata';
 import { UserLoginDto } from './dto/UserLoginDto';
 import { UserRegisterDto } from './dto/UserRegisterDto';
 import { IUserService } from './UserService';
 import { ValidateMiddleware } from '../common/ValidateMiddleware';
+import { IConfigService } from '../config/ConfigService';
+import 'reflect-metadata';
 
 export interface IUserController {
 	login: (req: Request, res: Response, next: NextFunction) => Promise<void>;
@@ -20,6 +22,7 @@ export class UserController extends BaseController implements IUserController {
 	constructor(
 		@inject(TYPES.ILogger) private loggerService: ILogger,
 		@inject(TYPES.UserService) private userService: IUserService,
+		@inject(TYPES.ConfigService) private configService: IConfigService,
 	) {
 		super(loggerService);
 
@@ -50,7 +53,10 @@ export class UserController extends BaseController implements IUserController {
 			return next(new HTTPError(401, 'Not authorized', 'login'));
 		}
 
-		this.ok(res, 'Login success!');
+		const secret = this.configService.get('SECRET');
+		const jwt = await this.signJWT(body.email, secret);
+
+		this.ok(res, { jwt });
 	}
 
 	async register(
@@ -66,5 +72,27 @@ export class UserController extends BaseController implements IUserController {
 
 		const { password, ...resResult } = result;
 		this.ok(res, resResult);
+	}
+
+	private signJWT(email: string, secret: string): Promise<string> {
+		return new Promise<string>((resolve, reject) => {
+			sign(
+				{
+					email,
+					iat: Math.floor(Date.now() / 1000),
+				},
+				secret,
+				{
+					algorithm: 'HS256',
+				},
+				(err, token) => {
+					if (err) {
+						reject(err);
+					}
+
+					resolve(token as string);
+				},
+			);
+		});
 	}
 }

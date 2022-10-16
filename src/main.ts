@@ -9,6 +9,11 @@ import { ConfigService, IConfigService } from './config/ConfigService';
 import { PrismaService } from './database/PrismaService';
 import { IUserRepository, UserRepository } from './user/UserRepository';
 
+export interface BootstrapReturn {
+	appContainer: Container;
+	app: App;
+}
+
 export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
 	bind<ILogger>(TYPES.ILogger).to(LoggerService).inSingletonScope();
 	bind<IExceptionFilter>(TYPES.ExceptionFilter).to(ExceptionFilter).inSingletonScope();
@@ -20,7 +25,7 @@ export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
 	bind<IUserRepository>(TYPES.UserRepository).to(UserRepository).inSingletonScope();
 });
 
-function bootstrap(): { appContainer: Container; app: App } {
+function bootstrap(): BootstrapReturn {
 	const appContainer = new Container();
 	appContainer.load(appBindings);
 	const app = appContainer.get<App>(TYPES.Application);

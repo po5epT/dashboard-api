@@ -10,8 +10,8 @@ import { UserRegisterDto } from './dto/UserRegisterDto';
 import { IUserService } from './UserService';
 import { ValidateMiddleware } from '../common/ValidateMiddleware';
 import { IConfigService } from '../config/ConfigService';
-import 'reflect-metadata';
 import { GuardMiddleware } from '../common/GuardMiddleware';
+import 'reflect-metadata';
 
 export interface IUserController {
 	login: (req: Request, res: Response, next: NextFunction) => Promise<void>;
